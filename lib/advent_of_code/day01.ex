@@ -12,16 +12,14 @@ defmodule AdventOfCode.Day01 do
   end
 
   defp sum_backpacks_calories(args) do
-    backpacks =
-      args
-      |> String.split("\n")
-      |> Enum.chunk_by(fn line -> line != "" end)
-      |> Enum.reject(fn line -> line == [""] end)
-
-    for backpack <- backpacks do
-      backpack
-      |> Enum.map(&String.to_integer/1)
+    args
+    |> String.split("\n")
+    |> Stream.chunk_by(fn line -> line != "" end)
+    |> Stream.reject(fn line -> line == [""] end)
+    |> Stream.map(fn calories ->
+      calories
+      |> Stream.map(&String.to_integer/1)
       |> Enum.sum()
-    end
+    end)
   end
 end
