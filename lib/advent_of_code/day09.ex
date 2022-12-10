@@ -1,30 +1,13 @@
 defmodule AdventOfCode.Day09 do
   def part1(args) do
-    args
-    |> String.split("\n", trim: true)
-    |> Enum.reduce({MapSet.new([{0, 0}]), List.duplicate({0, 0}, 2)}, fn move,
-                                                                         {tail_visited_positions,
-                                                                          knots_positions} ->
-      [direction, steps_string] = move |> String.split(" ")
-      steps = String.to_integer(steps_string)
-
-      {new_visited_positions, new_knots_positions} =
-        0..(steps - 1)
-        |> Enum.reduce({tail_visited_positions, knots_positions}, fn _,
-                                                                     {visited_positions,
-                                                                      positions} ->
-          knot0_position = positions |> Enum.at(0) |> get_new_head_position(direction)
-          knot1_position = positions |> Enum.at(1) |> get_new_tail_position(knot0_position)
-          {visited_positions |> MapSet.put(knot1_position), [knot0_position, knot1_position]}
-        end)
-
-      {new_visited_positions, new_knots_positions}
-    end)
-    |> elem(0)
-    |> MapSet.size()
+    move_rope(args, 2)
   end
 
   def part2(args) do
+    move_rope(args, 10)
+  end
+
+  defp move_rope(args, knots) do
     args
     |> String.split("\n", trim: true)
     |> Enum.reduce({MapSet.new([{0, 0}]), List.duplicate({0, 0}, 10)}, fn move,
@@ -37,30 +20,26 @@ defmodule AdventOfCode.Day09 do
         0..(steps - 1)
         |> Enum.reduce({tail_visited_positions, knots_positions}, fn _,
                                                                      {visited_positions,
-                                                                      positions} ->
-          knot0_position = positions |> Enum.at(0) |> get_new_head_position(direction)
-          knot1_position = positions |> Enum.at(1) |> get_new_tail_position(knot0_position)
-          knot2_position = positions |> Enum.at(2) |> get_new_tail_position(knot1_position)
-          knot3_position = positions |> Enum.at(3) |> get_new_tail_position(knot2_position)
-          knot4_position = positions |> Enum.at(4) |> get_new_tail_position(knot3_position)
-          knot5_position = positions |> Enum.at(5) |> get_new_tail_position(knot4_position)
-          knot6_position = positions |> Enum.at(6) |> get_new_tail_position(knot5_position)
-          knot7_position = positions |> Enum.at(7) |> get_new_tail_position(knot6_position)
-          knot8_position = positions |> Enum.at(8) |> get_new_tail_position(knot7_position)
-          knot9_position = positions |> Enum.at(9) |> get_new_tail_position(knot8_position)
+                                                                      current_positions} ->
+          head_position =
+            current_positions
+            |> Enum.at(0)
+            |> get_new_head_position(direction)
 
-          new_pos = [
-            knot0_position,
-            knot1_position,
-            knot2_position,
-            knot3_position,
-            knot4_position,
-            knot5_position,
-            knot6_position,
-            knot7_position,
-            knot8_position,
-            knot9_position
-          ]
+          new_pos =
+            1..(knots - 1)
+            |> Enum.reduce([head_position], fn knot, pos ->
+              previous_knot = Enum.reverse(pos) |> hd()
+
+              current_knot =
+                current_positions
+                |> Enum.at(knot)
+                |> get_new_tail_position(previous_knot)
+
+              pos ++ [current_knot]
+            end)
+
+          knot9_position = Enum.reverse(new_pos) |> hd()
 
           {visited_positions |> MapSet.put(knot9_position), new_pos}
         end)
@@ -102,12 +81,8 @@ defmodule AdventOfCode.Day09 do
       x_h < x_t - 1 and abs(y_h - y_t) <= 1 -> {x_h + 1, y_h}
       y_h > y_t + 1 and abs(x_h - x_t) <= 1 -> {x_h, y_h - 1}
       y_h < y_t - 1 and abs(x_h - x_t) <= 1 -> {x_h, y_h + 1}
-      true -> if (abs(x_h - x_t) > 1 or abs(y_h - y_t) > 1) do
-        IO.puts("Head is at (#{x_h}, #{y_h}) while tail is at (#{x_t}, #{y_t}), not moving tail?")
-        tail_position
-      else
-        tail_position
-      end
+      # No move required
+      true -> tail_position
     end
   end
 
