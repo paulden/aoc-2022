@@ -46,6 +46,6 @@ defmodule AdventOfCode.Day15Test do
 
     result = part2(input)
 
-    assert result
+    assert result == 56000011
   end
 end
